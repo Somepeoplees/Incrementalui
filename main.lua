@@ -10,7 +10,7 @@ local scriptList = {
     "currencies.lua",
     "modloader.lua",
     "autosave.lua",
-    "mainlogic.lua",
+    "logic.lua",
     -- Add more scripts here if you upload them
 }
 
