@@ -1,57 +1,36 @@
---[[
-    main.lua - Roblox Executor Script Loader
-    Loads and executes multiple Lua files from:
-    https://github.com/Somepeoplees/Incrementalui
+-- Base raw URL of your GitHub repo
+local baseURL = "https://raw.githubusercontent.com/Somepeoplees/Incrementalui/main/"
 
-    ❗ This script is designed for Roblox executors only.
-    ✅ Fully client-side
-    ✅ Supports mobile executors (Arceus X, Delta, Hydrogen)
---]]
-
-local user = "Somepeoplees"
-local repo = "Incrementalui"
-local branch = "main"
-
--- ✅ List of script files to load
+-- List of all script files in your repository (case-sensitive)
 local scriptList = {
+    "config.lua",
     "ui.lua",
-    "logic.lua",
     "upgrades.lua",
-    "mods.lua"
+    "milestones.lua",
+    "currencies.lua",
+    "modloader.lua",
+    "autosave.lua",
+    "mainlogic.lua",
+    -- Add more scripts here if you upload them
 }
 
--- 🧠 Optional safety check: detect suspicious nested loaders
-local function isSuspicious(source)
-    return source:find("loadstring") or source:find("game:HttpGet") or source:find("HttpPost")
-end
-
--- 🚀 Load and execute each script
-for _, file in ipairs(scriptList) do
-    local url = ("https://raw.githubusercontent.com/%s/%s/%s/%s"):format(user, repo, branch, file)
-
-    -- Fetch script from GitHub
-    local success, response = pcall(function()
-        return game:HttpGet(url)
+-- Function to safely load a remote script
+local function importScript(name)
+    local success, result = pcall(function()
+        return loadstring(game:HttpGet(baseURL .. name))()
     end)
 
-    if success and response then
-        -- Scan for risky code (optional)
-        if isSuspicious(response) then
-            warn("[⚠️] Suspicious code detected in '" .. file .. "' — skipping execution.")
-        else
-            local func, loadErr = loadstring(response)
-            if func then
-                local ran, execErr = pcall(func)
-                if ran then
-                    print("[✅] Loaded: " .. file)
-                else
-                    warn("[❌] Runtime error in '" .. file .. "': " .. tostring(execErr))
-                end
-            else
-                warn("[❌] Compile error in '" .. file .. "': " .. tostring(loadErr))
-            end
-        end
+    if not success then
+        warn("[INCREMENTALUI] Failed to load: " .. name .. " -> " .. tostring(result))
     else
-        warn("[🚫] Failed to fetch '" .. file .. "' from GitHub.")
+        print("[INCREMENTALUI] Loaded: " .. name)
     end
 end
+
+-- Load all scripts in order
+for _, scriptName in ipairs(scriptList) do
+    importScript(scriptName)
+end
+
+-- Optional: load main game loop or UI initializer last
+-- importScript("game.lua")
